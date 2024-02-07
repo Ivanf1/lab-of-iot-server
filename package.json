@@ -17,6 +17,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@prisma/client": "^5.9.1"
+    "@prisma/client": "^5.9.1",
+    "mqtt": "^5.3.5"
   }
 }
