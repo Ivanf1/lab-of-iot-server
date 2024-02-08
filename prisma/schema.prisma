@@ -42,4 +42,14 @@ model pickup_point {
   id           Int            @id @default(autoincrement())
   position     Int
   cube_dropper cube_dropper[]
+  cube_scanner cube_scanner[]
+}
+
+model cube_scanner {
+  id              Int           @id @default(autoincrement())
+  ip_address      String?       @db.VarChar(45)
+  id_pickup_point Int?
+  pickup_point    pickup_point? @relation(fields: [id_pickup_point], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_cube_scanner_pickup_point")
+
+  @@index([id_pickup_point], map: "fk_cube_scanner_pickup_point_idx")
 }
