@@ -13,7 +13,7 @@ client.on("connect", () => {
   client.subscribe("sm_iot_lab/cube/inserted");
   client.subscribe("sm_iot_lab/cube/released");
   client.subscribe("sm_iot_lab/person/cubes/get");
-  client.subscribe("sm_iot_lab/cube_scanner/0/ip/post");
+  client.subscribe("sm_iot_lab/cube_scanner/+/ip/post");
 });
 
 client.on("message", async (topic, payload) => {
@@ -45,8 +45,8 @@ client.on("message", async (topic, payload) => {
   }
 
   if (topic.endsWith("ip/post")) {
-    console.log("a cube scanner has posted its ip address");
     jsonPayload = JSON.parse(payload.toString()) as CubeScannerIpPublish;
+    console.log("a cube scanner has posted its ip address");
     cubeScanner.updateIpAddress(jsonPayload.pickupPointN, jsonPayload.ipAddress);
     return;
   }
