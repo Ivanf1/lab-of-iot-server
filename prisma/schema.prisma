@@ -8,13 +8,14 @@ datasource db {
 }
 
 model cube {
-  id              Int          @id @default(autoincrement())
-  scanned_at      DateTime?    @db.Timestamp(0)
-  released_at     DateTime?    @db.Timestamp(0)
+  id              Int           @id @default(autoincrement())
+  uuid            String        @unique(map: "uuid_UNIQUE") @db.VarChar(45)
+  scanned_at      DateTime?     @db.Timestamp(0)
+  released_at     DateTime?     @db.Timestamp(0)
   id_person       Int
-  id_cube_dropper Int
-  cube_dropper    cube_dropper @relation(fields: [id_cube_dropper], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cube_cube_dropper_fk")
-  person          person       @relation(fields: [id_person], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cube_person_fk")
+  id_cube_dropper Int?
+  cube_dropper    cube_dropper? @relation(fields: [id_cube_dropper], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cube_cube_dropper_fk")
+  person          person        @relation(fields: [id_person], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cube_person_fk")
 
   @@index([id_cube_dropper], map: "cube_cube_dropper_fk_idx")
   @@index([id_person], map: "cube_person_fk_idx")

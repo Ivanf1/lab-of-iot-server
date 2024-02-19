@@ -1,37 +1,50 @@
 import mqtt from "mqtt";
 import { BROKER_ADDRESS } from "../constants/constants";
 import cube from "../model/cube/cube";
-import CubeInserted from "./messages/cubeInserted.interface";
 import CubeReleased from "./messages/cubeReleased.interface";
 import CubeByPerson from "./messages/cubeByPerson.interface";
 import cubeScanner from "../model/cubeScanner/cubeScanner";
 import CubeScannerIpPublish from "./messages/cubeScannerIpPublish";
+import CubeScanned from "./messages/cubeScanned.interface";
+import CubeInsertResponse from "./messages/cubeInsertResponse.interface";
 
 const client = mqtt.connect(BROKER_ADDRESS);
 
 client.on("connect", () => {
-  client.subscribe("sm_iot_lab/cube/inserted");
-  client.subscribe("sm_iot_lab/cube/released");
-  client.subscribe("sm_iot_lab/person/cubes/get");
-  client.subscribe("sm_iot_lab/cube_scanner/+/ip/post");
+  client.subscribe("sm_iot_lab/#");
 });
 
 client.on("message", async (topic, payload) => {
   let jsonPayload;
 
-  if (topic.endsWith("cube_inserted")) {
+  if (topic.endsWith("cube_scanned")) {
+    // a new cube has been scanned
+    console.log("cube scanned");
+    jsonPayload = JSON.parse(payload.toString()) as CubeScanned;
+
+    // now we need to send an insert_request to the pickup point
+    // specified in the payload
+    client.publish(
+      "sm_iot_lab/pickup_point/" + jsonPayload.pickupPointN + "/cube/insert_request",
+      jsonPayload.payload
+    );
+  }
+
+  if (topic.endsWith("insert_response")) {
     // a new cube has been inserted in a pickup point
     console.log("cube inserted");
-    jsonPayload = JSON.parse(payload.toString()) as CubeInserted;
-    cube.add(jsonPayload.person, jsonPayload.cube_dropper);
+    jsonPayload = JSON.parse(payload.toString()) as CubeInsertResponse;
+
+    // now we need to save where this cube has been inserted
+    cube.markAsInserted(jsonPayload.cubeId, jsonPayload.pickupPointN, jsonPayload.cubeDropperN);
     return;
   }
 
-  if (topic.endsWith("cube_released")) {
+  if (topic.endsWith("release_response")) {
     // a cube has been released from a pickup point
     console.log("cube released");
     jsonPayload = JSON.parse(payload.toString()) as CubeReleased;
-    cube.markAsReleased(jsonPayload.cube);
+    cube.markAsReleased(jsonPayload.cubeDropperN, jsonPayload.pickupPointN);
     return;
   }
 

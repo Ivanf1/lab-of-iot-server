@@ -1,12 +1,12 @@
 import db from "../../db/db";
 
-const addCube = async (idPerson: number, idCubeDropper: number) => {
+const addCube = async (idPerson: number, uuid: string) => {
   try {
     await db.cube.create({
       data: {
         scanned_at: new Date().toISOString(),
         id_person: idPerson,
-        id_cube_dropper: idCubeDropper,
+        uuid: uuid,
       },
     });
   } catch (error) {
@@ -14,14 +14,62 @@ const addCube = async (idPerson: number, idCubeDropper: number) => {
   }
 };
 
-const markCubeAsReleased = async (idCube: number) => {
+const markCubeAsInserted = async (uuid: string, pickupPointN: number, cubeDropperN: number) => {
+  let cubeDropper;
+  try {
+    cubeDropper = await db.cube_dropper.findFirst({
+      where: {
+        position: cubeDropperN,
+        pickup_point: {
+          position: pickupPointN,
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  if (cubeDropper == null) return;
+
   try {
     await db.cube.update({
+      data: {
+        id_cube_dropper: cubeDropper.id,
+      },
+      where: {
+        uuid: uuid,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const markCubeAsReleased = async (pickupPointN: number, cubeDropperN: number) => {
+  let cubeDropper;
+  try {
+    cubeDropper = await db.cube_dropper.findFirst({
+      where: {
+        position: cubeDropperN,
+        pickup_point: {
+          position: pickupPointN,
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  if (cubeDropper == null) return;
+
+  try {
+    await db.cube.updateMany({
       data: {
         released_at: new Date().toISOString(),
       },
       where: {
-        id: idCube,
+        id_cube_dropper: cubeDropper.id,
+        released_at: null,
       },
     });
   } catch (error) {
@@ -49,6 +97,7 @@ const getCubesByPerson = async (idPerson: number) => {
       },
       where: {
         id_person: idPerson,
+        released_at: null,
       },
     });
   } catch (error) {
@@ -61,6 +110,7 @@ const getCubesByPerson = async (idPerson: number) => {
 const cube = {
   add: addCube,
   markAsReleased: markCubeAsReleased,
+  markAsInserted: markCubeAsInserted,
   getByPerson: getCubesByPerson,
 };
 

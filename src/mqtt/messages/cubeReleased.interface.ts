@@ -1,3 +1,4 @@
 export default interface CubeReleased {
-  cube: number;
+  pickupPointN: number;
+  cubeDropperN: number;
 }
