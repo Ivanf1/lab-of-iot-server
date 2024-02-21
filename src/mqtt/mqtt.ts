@@ -17,7 +17,7 @@ client.on("connect", () => {
 client.on("message", async (topic, payload) => {
   let jsonPayload;
 
-  if (topic.endsWith("cube_scanned")) {
+  if (topic.endsWith("cube/scanned")) {
     // a new cube has been scanned
     console.log("cube scanned");
     jsonPayload = JSON.parse(payload.toString()) as CubeScanned;
@@ -25,22 +25,23 @@ client.on("message", async (topic, payload) => {
     // now we need to send an insert_request to the pickup point
     // specified in the payload
     client.publish(
-      "sm_iot_lab/pickup_point/" + jsonPayload.pickupPointN + "/cube/insert_request",
+      "sm_iot_lab/pickup_point/" + jsonPayload.pickupPointN + "/cube/insert/request",
       jsonPayload.payload
     );
   }
 
-  if (topic.endsWith("insert_response")) {
+  if (topic.endsWith("insert/response")) {
     // a new cube has been inserted in a pickup point
     console.log("cube inserted");
     jsonPayload = JSON.parse(payload.toString()) as CubeInsertResponse;
+    console.log(jsonPayload);
 
     // now we need to save where this cube has been inserted
-    cube.markAsInserted(jsonPayload.cubeId, jsonPayload.pickupPointN, jsonPayload.cubeDropperN);
+    // cube.markAsInserted(jsonPayload.cubeId, jsonPayload.pickupPointN, jsonPayload.cubeDropperN);
     return;
   }
 
-  if (topic.endsWith("release_response")) {
+  if (topic.endsWith("release/response")) {
     // a cube has been released from a pickup point
     console.log("cube released");
     jsonPayload = JSON.parse(payload.toString()) as CubeReleased;
