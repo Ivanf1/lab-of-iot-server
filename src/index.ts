@@ -31,14 +31,30 @@ app.get("/api/cube-scanner", async (_: Request, res: Response) => {
   }
 });
 
-app.get("api/cube", async (_: Request, res: Response) => {
+app.get("/api/person/:uuid/cubes", async (req: Request, res: Response) => {
   console.log("request for cube");
 
+  var uuid = req.params.uuid;
+
   try {
+    const person = await db.person.findFirst({
+      where: {
+        uuid: uuid,
+      },
+    });
+
+    if (person == null) return;
+
     const result = await db.cube.findMany({
       where: {
-        id_person: 100,
-        released_at: null,
+        AND: [
+          {
+            id_person: person.id,
+          },
+          {
+            NOT: [{ id_cube_dropper: null }],
+          },
+        ],
       },
       include: {
         cube_dropper: {
@@ -53,7 +69,6 @@ app.get("api/cube", async (_: Request, res: Response) => {
       },
     });
 
-    console.log(result);
     res.json(result);
   } catch (error) {
     res.status(500).json({
